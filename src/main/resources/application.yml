@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    druid:
+      url: jdbc:mysql://localhost:3306/mydb
+      username: root
+      password: 98765432
+      stat-view-servlet:
+        login-password: 123456
+        login-username: user
+        enabled: false
+      web-stat-filter:
+        enabled: false
