@@ -10,3 +10,17 @@ spring:
         enabled: false
       web-stat-filter:
         enabled: false
+mybatis:
+  type-aliases-package: com.yang.security.model
+  mapper-locations: mappers/*.xml
+  configuration:
+    cache-enabled: true
+    multiple-result-sets-enabled: true
+    aggressive-lazy-loading: true
+    use-column-label: true
+    use-generated-keys: false
+    auto-mapping-behavior: partial
+    default-executor-type: simple
+    map-underscore-to-camel-case: true
+    local-cache-scope: session
+    jdbc-type-for-null: null
