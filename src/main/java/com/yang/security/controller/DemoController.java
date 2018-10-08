@@ -10,4 +10,9 @@ public class DemoController {
     public String hello() {
         return "hello, world!";
     }
+
+    @GetMapping(value = "/test")
+    public String test() {
+        return "you hava role teller";
+    }
 }

@@ -8,6 +8,7 @@ import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.intercept.AbstractSecurityInterceptor;
 import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -37,27 +38,26 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterBefore(this.getDynamicallyUrlInterceptor(), FilterSecurityInterceptor.class);
-//            .authorizeRequests()
-//                .antMatchers("/", "/home").hasRole("ADMIN")
-//                .anyRequest().authenticated()
-//                .and()
-//                .formLogin()
-//                .loginPage("/login")
-//                .permitAll()
-//                .and()
-//                .logout()
-//                .permitAll().and().addFilterBefore(this.getDynamicallyUrlInterceptor(), FilterSecurityInterceptor.class);
+        http.addFilterBefore(this.getDynamicallyUrlInterceptor(), FilterSecurityInterceptor.class)
+            .authorizeRequests()
+                .antMatchers("/", "/home").hasRole("ADMIN")
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
+                .loginPage("/login")
+                .permitAll()
+                .and()
+                .logout()
+                .permitAll();
     }
 
     @Bean
-    public FilterSecurityInterceptor getDynamicallyUrlInterceptor() {
-        FilterSecurityInterceptor interceptor = new FilterSecurityInterceptor();
-        MyFilterSecurityMetadataSource metadataSource = new MyFilterSecurityMetadataSource();
+    public DynamicallyUrlInterceptor getDynamicallyUrlInterceptor() {
+        DynamicallyUrlInterceptor interceptor = new DynamicallyUrlInterceptor();
         List<AccessDecisionVoter<?>> list = new ArrayList<>();
         interceptor.setSecurityMetadataSource(new MyFilterSecurityMetadataSource());
-        list.add(new WebExpressionVoter());
-        interceptor.setAccessDecisionManager(new AffirmativeBased(list));
+        list.add(new RoleVoter());
+        interceptor.setAccessDecisionManager(new DynamicallyUrlAccessDecisionManager(list));
         return interceptor;
     }
 
@@ -68,7 +68,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService()).passwordEncoder(getPasswordEncoder());
+        // 在这里可以自定义DaoAuthenticationProvider
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        auth.authenticationProvider(provider).userDetailsService(userDetailsService()).passwordEncoder(getPasswordEncoder());
 
 //        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
 //        auth.authenticationProvider(authenticationProvider).userDetailsService(userDetailsService()).passwordEncoder(getPasswordEncoder());

@@ -10,6 +10,11 @@ import org.springframework.security.web.access.intercept.FilterInvocationSecurit
 import javax.servlet.*;
 import java.io.IOException;
 
+/**
+ * @author https://www.jianshu.com/p/0a06496e75ea
+ * @description 类似于FilterSecurityIntercept，用于鉴权，
+ *              需要配置setAccessDecisionManager()、setSecurityMetadataSource()
+ */
 public class DynamicallyUrlInterceptor extends AbstractSecurityInterceptor implements Filter {
 
     /**

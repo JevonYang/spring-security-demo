@@ -10,6 +10,10 @@ import org.springframework.security.core.Authentication;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * @author https://www.jianshu.com/p/0a06496e75ea
+ * @description 自定义AccessDecisionManager
+ */
 public class DynamicallyUrlAccessDecisionManager extends AbstractAccessDecisionManager {
     public DynamicallyUrlAccessDecisionManager(List<AccessDecisionVoter<?>> decisionVoters) {
         super(decisionVoters);
@@ -30,12 +34,9 @@ public class DynamicallyUrlAccessDecisionManager extends AbstractAccessDecisionM
             switch (result) {
                 case AccessDecisionVoter.ACCESS_GRANTED:
                     return;
-
                 case AccessDecisionVoter.ACCESS_DENIED:
                     deny++;
-
                     break;
-
                 default:
                     break;
             }

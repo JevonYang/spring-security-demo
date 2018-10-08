@@ -10,6 +10,10 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
+/**
+ * @author https://www.jianshu.com/p/0a06496e75ea
+ * @description 用于初始化url权限数据RequestMap，可以在构造函数中初始化加入持久化层读数据
+ */
 public class MyFilterSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
 
     private final Map<RequestMatcher, Collection<ConfigAttribute>> requestMap;
@@ -27,8 +31,8 @@ public class MyFilterSecurityMetadataSource implements FilterInvocationSecurityM
         configs.add(config);
         map.put(matcher,configs);
 
-        AntPathRequestMatcher matcher2 = new AntPathRequestMatcher("/", "GET");
-        SecurityConfig config2 = new SecurityConfig("ROLE_ADMIN");
+        AntPathRequestMatcher matcher2 = new AntPathRequestMatcher("/test", "GET");
+        SecurityConfig config2 = new SecurityConfig("ROLE_TELLER");
         Set<ConfigAttribute> configs2 = new HashSet<>();
         configs2.add(config2);
         map.put(matcher2,configs2);
@@ -49,10 +53,6 @@ public class MyFilterSecurityMetadataSource implements FilterInvocationSecurityM
         HttpServletRequest request = fi.getRequest();
         String url = fi.getRequestUrl();
         String httpMethod = fi.getRequest().getMethod();
-
-        // Lookup your database (or other source) using this information and populate the
-        // list of attributes (这里初始话你的权限数据)
-        //List<ConfigAttribute> attributes = new ArrayList<ConfigAttribute>();
 
         //遍历我们初始化的权限数据，找到对应的url对应的权限
         for (Map.Entry<RequestMatcher, Collection<ConfigAttribute>> entry : requestMap
