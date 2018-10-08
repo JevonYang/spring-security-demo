@@ -12,7 +12,9 @@ import java.io.IOException;
 
 public class DynamicallyUrlInterceptor extends AbstractSecurityInterceptor implements Filter {
 
-    //标记自定义的url拦截器已经加载
+    /**
+     * 标记自定义的url拦截器已经加载
+     */
     private static final String FILTER_APPLIED = "__spring_security_filterSecurityInterceptor_filterApplied_dynamically";
 
     private FilterInvocationSecurityMetadataSource securityMetadataSource;

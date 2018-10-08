@@ -8,30 +8,28 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class MyFilterSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
 
     private final Map<RequestMatcher, Collection<ConfigAttribute>> requestMap;
 
-    /*
+    /**
      * 这个例子放在构造方法里初始化url权限数据，我们只要保证在 getAttributes()之前初始好数据就可以了
      */
     public MyFilterSecurityMetadataSource() {
         Map<RequestMatcher, Collection<ConfigAttribute>> map = new HashMap<>();
 
-        AntPathRequestMatcher matcher = new AntPathRequestMatcher("/home");
+        AntPathRequestMatcher matcher = new AntPathRequestMatcher("/hello","GET");
+
         SecurityConfig config = new SecurityConfig("ROLE_ADMIN");
-        ArrayList<ConfigAttribute> configs = new ArrayList<>();
+        Set<ConfigAttribute> configs = new HashSet<>();
         configs.add(config);
         map.put(matcher,configs);
 
-        AntPathRequestMatcher matcher2 = new AntPathRequestMatcher("/");
+        AntPathRequestMatcher matcher2 = new AntPathRequestMatcher("/", "GET");
         SecurityConfig config2 = new SecurityConfig("ROLE_ADMIN");
-        ArrayList<ConfigAttribute> configs2 = new ArrayList<>();
+        Set<ConfigAttribute> configs2 = new HashSet<>();
         configs2.add(config2);
         map.put(matcher2,configs2);
 

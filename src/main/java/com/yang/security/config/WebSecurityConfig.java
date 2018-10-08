@@ -4,6 +4,10 @@ import com.yang.security.service.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.intercept.AbstractSecurityInterceptor;
+import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -13,6 +17,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -26,17 +37,28 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-            .authorizeRequests()
-                .antMatchers("/", "/home").hasRole("ADMIN")
-                .anyRequest().authenticated()
-                .and()
-                .formLogin()
-                .loginPage("/login")
-                .permitAll()
-                .and()
-                .logout()
-                .permitAll();
+        http.addFilterBefore(this.getDynamicallyUrlInterceptor(), FilterSecurityInterceptor.class);
+//            .authorizeRequests()
+//                .antMatchers("/", "/home").hasRole("ADMIN")
+//                .anyRequest().authenticated()
+//                .and()
+//                .formLogin()
+//                .loginPage("/login")
+//                .permitAll()
+//                .and()
+//                .logout()
+//                .permitAll().and().addFilterBefore(this.getDynamicallyUrlInterceptor(), FilterSecurityInterceptor.class);
+    }
+
+    @Bean
+    public FilterSecurityInterceptor getDynamicallyUrlInterceptor() {
+        FilterSecurityInterceptor interceptor = new FilterSecurityInterceptor();
+        MyFilterSecurityMetadataSource metadataSource = new MyFilterSecurityMetadataSource();
+        List<AccessDecisionVoter<?>> list = new ArrayList<>();
+        interceptor.setSecurityMetadataSource(new MyFilterSecurityMetadataSource());
+        list.add(new WebExpressionVoter());
+        interceptor.setAccessDecisionManager(new AffirmativeBased(list));
+        return interceptor;
     }
 
     @Bean
