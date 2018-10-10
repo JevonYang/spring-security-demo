@@ -7,6 +7,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.yang.security.model.LoginEntity;
 import com.yang.security.model.MyAuthenticatedToken;
 import com.yang.security.model.User;
+import com.yang.security.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +39,9 @@ public class LoginController {
     @Autowired
     private Algorithm algorithm;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public MyAuthenticatedToken login(@RequestBody LoginEntity user) throws AuthenticationException {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
@@ -45,13 +49,7 @@ public class LoginController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         final User currentUser = (User) authentication.getPrincipal();
         long halfHourLater = System.currentTimeMillis() + 30 * 60 * 1000;
-        String accessToken = JWT.create()
-                .withIssuer("jevon")
-                .withSubject(currentUser.getAuthorities().iterator().next().toString())
-                .withAudience(currentUser.getUsername())
-                .withExpiresAt(new Date(halfHourLater))
-                .withIssuedAt(new Date())
-                .sign(algorithm);
+        String accessToken = jwtUtil.User2accessToken(currentUser);
         return new MyAuthenticatedToken(accessToken, accessToken, "JWT", halfHourLater);
     };
 

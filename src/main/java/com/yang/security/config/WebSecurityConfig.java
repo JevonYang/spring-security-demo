@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -21,6 +22,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +46,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private PasswordEncoder passwordEncoder;
 
     @Bean
+    public JwtAuthorizationTokenFilter getJwtAuthorizationTokenFilter() {
+        return new JwtAuthorizationTokenFilter();
+    }
+
+    @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
@@ -56,6 +65,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         // AuthenticationTokenFilter will ignore the below paths
         web
+            .ignoring()
+                .antMatchers(
+                        HttpMethod.POST,
+                        "/auth/**"
+                )
+                .and()
                 .ignoring()
                 .antMatchers(
                         HttpMethod.GET,
@@ -84,14 +99,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/druid/**").permitAll()
                 .antMatchers("/auth/**").permitAll()
+                .antMatchers("/test").hasRole("TELLER")
                 .anyRequest().authenticated();
-
+        http.addFilterBefore(getJwtAuthorizationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(getDynamicallyUrlInterceptor(), FilterSecurityInterceptor.class);
     }
 
     @Bean
-    public DynamicallyUrlInterceptor getDynamicallyUrlInterceptor() {
-        DynamicallyUrlInterceptor interceptor = new DynamicallyUrlInterceptor();
+    public FilterSecurityInterceptor getDynamicallyUrlInterceptor() {
+        FilterSecurityInterceptor interceptor = new FilterSecurityInterceptor();
         List<AccessDecisionVoter<?>> list = new ArrayList<>();
         interceptor.setSecurityMetadataSource(new MyFilterSecurityMetadataSource());
         list.add(new RoleVoter());
