@@ -13,6 +13,6 @@ public class DemoController {
 
     @GetMapping(value = "/test")
     public String test() {
-        return "you hava role teller";
+        return "you have role teller";
     }
 }

@@ -46,8 +46,8 @@ public class LoginController {
         final User currentUser = (User) authentication.getPrincipal();
         long halfHourLater = System.currentTimeMillis() + 30 * 60 * 1000;
         String accessToken = JWT.create()
-                .withIssuer(currentUser.getAuthorities().iterator().next().toString())
-                .withSubject("admin")
+                .withIssuer("jevon")
+                .withSubject(currentUser.getAuthorities().iterator().next().toString())
                 .withAudience(currentUser.getUsername())
                 .withExpiresAt(new Date(halfHourLater))
                 .withIssuedAt(new Date())
@@ -76,7 +76,6 @@ public class LoginController {
 //                .withIssuer("yang")
 //                .build(); //Reusable verifier instance
 //        DecodedJWT token = verifier.verify(jwt);
-
     }
 
 }
