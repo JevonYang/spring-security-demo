@@ -1,16 +1,13 @@
 package com.yang.security.utils;
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.yang.security.config.JwtAuthenticationToken;
 import com.yang.security.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -34,14 +31,14 @@ public class JwtUtil {
                 .withAudience(user.getUsername())
                 .withExpiresAt(new Date(halfHourLater))
                 .withIssuedAt(new Date())
-                .withClaim("id",user.getId())
-                .withClaim("department",user.getDepartment())
-                .withArrayClaim("Authorities",user.getAuthoritiesToString())
+                .withClaim("id", user.getId())
+                .withClaim("department", user.getDepartment())
+                .withArrayClaim("Authorities", user.getAuthoritiesToString())
                 .sign(algorithm);
     }
 
     public User AccessToken2User(String accessToken) {
-        try{
+        try {
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer("jevon")
                     .build();
@@ -53,17 +50,19 @@ public class JwtUtil {
                 set.add(authority);
             }
             Map<String, Claim> map = jwt.getClaims();
-            String userDetails= jwt.getPayload();
+            String userDetails = jwt.getPayload();
             return new User(jwt.getClaim("id").asLong(),
                     jwt.getAudience().get(0),
                     jwt.getSubject(),
                     jwt.getClaim("department").asString(),
                     set
-                    );
+            );
         } catch (JWTVerificationException e) {
             // do something
         }
         return null;
 
-    };
+    }
+
+    ;
 }

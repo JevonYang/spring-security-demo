@@ -24,18 +24,18 @@ public class MyFilterSecurityMetadataSource implements FilterInvocationSecurityM
     public MyFilterSecurityMetadataSource() {
         Map<RequestMatcher, Collection<ConfigAttribute>> map = new HashMap<>();
 
-        AntPathRequestMatcher matcher = new AntPathRequestMatcher("/hello","GET");
+        AntPathRequestMatcher matcher = new AntPathRequestMatcher("/hello", "GET");
 
         SecurityConfig config = new SecurityConfig("ROLE_ADMIN");
         Set<ConfigAttribute> configs = new HashSet<>();
         configs.add(config);
-        map.put(matcher,configs);
+        map.put(matcher, configs);
 
         AntPathRequestMatcher matcher2 = new AntPathRequestMatcher("/test", "GET");
         SecurityConfig config2 = new SecurityConfig("ROLE_TELLER");
         Set<ConfigAttribute> configs2 = new HashSet<>();
         configs2.add(config2);
-        map.put(matcher2,configs2);
+        map.put(matcher2, configs2);
 
         this.requestMap = map;
     }

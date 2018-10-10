@@ -34,20 +34,20 @@ public class MyUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User tempUser = userMapper.findOneByUsername(username);
         List<Role> roles = roleMapper.findRolesByUsername(username);
-        List<Authority> authorities= authorityMapper.findAuthoritiesByRoles(roles);
+        List<Authority> authorities = authorityMapper.findAuthoritiesByRoles(roles);
 
-        try{
+        try {
             Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
-            for (Role role: roles) {
+            for (Role role : roles) {
                 grantedAuthorities.add(new SimpleGrantedAuthority(role.getValue()));
             }
-            for (Authority authority:authorities) {
+            for (Authority authority : authorities) {
                 grantedAuthorities.add(new SimpleGrantedAuthority(authority.getValue()));
             }
             tempUser.setAuthorities(grantedAuthorities);
             return tempUser;
-        }catch (Exception e){
-            throw  new UsernameNotFoundException("禁止！用户"+username+"不存在，请重新再尝试");
+        } catch (Exception e) {
+            throw new UsernameNotFoundException("禁止！用户" + username + "不存在，请重新再尝试");
         }
     }
 }

@@ -2,7 +2,6 @@ package com.yang.security.dao;
 
 import com.yang.security.model.Authority;
 import com.yang.security.model.Role;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
