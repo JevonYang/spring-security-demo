@@ -15,7 +15,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     public JwtAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
-        this.principal = principal;
+        this.principal= principal;
         this.credentials = credentials;
         super.setAuthenticated(true);
     }
@@ -43,6 +43,6 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     @Override
     public void eraseCredentials() {
         super.eraseCredentials();
-        credentials = null;
+        credentials=null;
     }
 }

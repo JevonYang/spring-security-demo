@@ -1,6 +1,7 @@
 package com.yang.security.dao;
 
 import com.yang.security.model.User;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -54,6 +55,6 @@ public interface UserMapper {
      */
     int updateByPrimaryKey(User record);
 
-    User findOneByUsername(@Param("username") String username);
+    User findOneByUsername(@Param("username")String username);
 
 }

@@ -1,6 +1,7 @@
 package com.yang.security.dao;
 
 import com.yang.security.model.Role;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -56,5 +57,5 @@ public interface RoleMapper {
      */
     int updateByPrimaryKey(Role record);
 
-    List<Role> findRolesByUsername(@Param("username") String username);
+    List<Role> findRolesByUsername(@Param("username")String username);
 }

@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
  * @date 2018/10/10
  * @description
  */
-// TODO
 public class JwtAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
 
     @Override

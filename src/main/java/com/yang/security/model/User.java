@@ -5,12 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -23,39 +21,25 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User implements UserDetails {
-    /**
-     * id
-     */
+    /** id*/
     private Long id;
 
-    /**
-     * 用户名
-     */
+    /** 用户名*/
     private String username;
 
-    /**
-     * 密码
-     */
+    /** 密码*/
     private String password;
 
-    /**
-     * 公司
-     */
+    /** 公司*/
     private String company;
 
-    /**
-     * 部门
-     */
+    /** 部门*/
     private String department;
 
-    /**
-     * 创建者
-     */
+    /** 创建者*/
     private String createBy;
 
-    /**
-     * 创建时间
-     */
+    /** 创建时间*/
     private Date createDate;
 
     private Set<GrantedAuthority> authorities;
@@ -78,18 +62,18 @@ public class User implements UserDetails {
         return password;
     }
 
+    public void setAuthorities(Set<GrantedAuthority> authorities) {
+        this.authorities = authorities;
+    }
+
     @Override
     public Set<GrantedAuthority> getAuthorities() {
         return authorities;
     }
 
-    public void setAuthorities(Set<GrantedAuthority> authorities) {
-        this.authorities = authorities;
-    }
-
     public String[] getAuthoritiesToString() {
         List<String> list = new ArrayList<>();
-        for (GrantedAuthority authority : authorities) {
+        for (GrantedAuthority authority: authorities) {
             list.add(authority.getAuthority());
         }
         String[] strings = new String[list.size()];
