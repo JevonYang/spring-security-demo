@@ -36,8 +36,6 @@ public class MyUserDetailsService implements UserDetailsService {
         List<Role> roles = roleMapper.findRolesByUsername(username);
         List<Authority> authorities= authorityMapper.findAuthoritiesByRoles(roles);
 
-        System.out.println("=======================================================");
-
         try{
             Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
             for (Role role: roles) {
@@ -46,7 +44,8 @@ public class MyUserDetailsService implements UserDetailsService {
             for (Authority authority:authorities) {
                 grantedAuthorities.add(new SimpleGrantedAuthority(authority.getValue()));
             }
-            return new org.springframework.security.core.userdetails.User(tempUser.getUsername(), tempUser.getPassword(), grantedAuthorities);
+            tempUser.setAuthorities(grantedAuthorities);
+            return tempUser;
         }catch (Exception e){
             throw  new UsernameNotFoundException("禁止！用户"+username+"不存在，请重新再尝试");
         }
