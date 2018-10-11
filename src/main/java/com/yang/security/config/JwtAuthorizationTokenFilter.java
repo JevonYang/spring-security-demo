@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author jevon
@@ -42,34 +43,38 @@ import java.util.Map;
  * @description 认证jwt权限
  */
 
-@Component
-public class JwtAuthorizationTokenFilter extends GenericFilterBean {
-
-    //private Logger logger = LoggerFactory.getLogger(JwtAuthorizationTokenFilter.class);
-
-    @Autowired
-    private Algorithm algorithm;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
+public class JwtAuthorizationTokenFilter extends AbstractAuthenticationProcessingFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
 
     @Override
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+        return null;
+    }
+
+    public JwtAuthorizationTokenFilter(RequestMatcher matcher) {
+        super(matcher);
+    }
+
+    @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         HttpServletRequest httpServletRequest= (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-        try {
+        if (!Pattern.matches("/auth/.*", httpServletRequest.getRequestURI())) {
             String token = httpServletRequest.getHeader("Authorization");
             User user = jwtUtil.AccessToken2User(token);
-            JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(user, null, user.getAuthorities());
-            final Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(user, token, user.getAuthorities());
+            final Authentication authentication = getAuthenticationManager().authenticate(authenticationToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        } catch (JWTVerificationException e) {
-            logger.error("jwt失效");
         }
+
         filterChain.doFilter(httpServletRequest, httpServletResponse);
+    }
+
+    public static void main(String[] args) {
+        String pattern = "/auth/.*";
+        System.out.println(Pattern.matches(pattern, "/auth/login"));
+
     }
 }

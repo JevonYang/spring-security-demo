@@ -45,9 +45,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+//    @Autowired
+//    private JwtAuthorizationTokenFilter jwtAuthorizationTokenFilter;
+//
+//    @Autowired
+//    private JwtAuthenticationProvider jwtAuthenticationProvider;
+//
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
     @Bean
     public JwtAuthorizationTokenFilter getJwtAuthorizationTokenFilter() {
-        return new JwtAuthorizationTokenFilter();
+        List<String> skipList = new ArrayList<>();
+        skipList.add("/auth/.*");
+        JwtAuthorizationTokenFilter filter = new JwtAuthorizationTokenFilter(new SkipUrlMatcher(skipList));
+        filter.setAuthenticationManager(authenticationManager);
+        return filter;
     }
 
     @Bean
@@ -79,7 +92,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/favicon.ico",
                         "/**/*.html",
                         "/**/*.css",
-                        "/**/*.js");
+                        "/**/*.js")
+        .and().ignoring().antMatchers(HttpMethod.GET, "/druid/**");
     }
 
     @Bean
@@ -123,8 +137,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         // 在这里可以自定义DaoAuthenticationProvider
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        auth.userDetailsService(this.userDetailsService).passwordEncoder(this.passwordEncoder);
+        JwtAuthenticationProvider jwtAuthenticationProvider = new JwtAuthenticationProvider();
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setPasswordEncoder(this.passwordEncoder);
+        daoAuthenticationProvider.setUserDetailsService(this.userDetailsService);
+        // jwtAuthenticationProvider.
+        auth.authenticationProvider(daoAuthenticationProvider);
+        auth.authenticationProvider(jwtAuthenticationProvider);
+        // auth.userDetailsService(this.userDetailsService).passwordEncoder(this.passwordEncoder);
         // auth.authenticationProvider();
 
 //        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
