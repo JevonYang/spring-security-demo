@@ -61,7 +61,7 @@ public class JwtAuthorizationTokenFilter extends AbstractAuthenticationProcessin
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         HttpServletRequest httpServletRequest= (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-        if (!Pattern.matches("/auth/.*", httpServletRequest.getRequestURI())) {
+        if (!Pattern.matches("/auth/.*", httpServletRequest.getRequestURI()) && !"/error".equals(httpServletRequest.getRequestURI())) {
             String token = httpServletRequest.getHeader("Authorization");
             User user = jwtUtil.AccessToken2User(token);
             JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(user, token, user.getAuthorities());

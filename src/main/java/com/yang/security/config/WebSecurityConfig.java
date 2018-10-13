@@ -87,6 +87,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoring()
                 .antMatchers(
                         HttpMethod.GET,
+                        "/error"
+                )
+                .and()
+                .ignoring()
+                .antMatchers(
+                        HttpMethod.GET,
                         "/",
                         "/*.html",
                         "/favicon.ico",
@@ -113,7 +119,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/druid/**").permitAll()
                 .antMatchers("/auth/**").permitAll()
-                .antMatchers("/test").hasRole("TELLER")
+                .antMatchers("/error").permitAll()
+                .antMatchers("/test").hasRole("ADMIN")
                 .anyRequest().authenticated();
         http.addFilterBefore(getJwtAuthorizationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(getDynamicallyUrlInterceptor(), FilterSecurityInterceptor.class);
