@@ -30,3 +30,7 @@ mybatis:
     map-underscore-to-camel-case: true
     local-cache-scope: session
     jdbc-type-for-null: null
+
+logging:
+  level:
+    org.springframework.security: debug
