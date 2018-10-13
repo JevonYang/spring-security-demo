@@ -9,7 +9,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -23,8 +22,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +42,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-//    @Autowired
+    @Autowired
+    private ErrorAuthenticationEntryPoint errorAuthenticationEntryPoint;
+
+    @Autowired
+    private MyAccessDeniedHandler myAccessDeniedHandler;
+
+    //    @Autowired
 //    private JwtAuthorizationTokenFilter jwtAuthorizationTokenFilter;
 //
 //    @Autowired
@@ -78,7 +81,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         // AuthenticationTokenFilter will ignore the below paths
         web
-            .ignoring()
+                .ignoring()
                 .antMatchers(
                         HttpMethod.POST,
                         "/auth/**"
@@ -99,7 +102,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/**/*.html",
                         "/**/*.css",
                         "/**/*.js")
-        .and().ignoring().antMatchers(HttpMethod.GET, "/druid/**");
+                .and().ignoring().antMatchers(HttpMethod.GET, "/druid/**");
     }
 
     @Bean
@@ -113,6 +116,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 // we don't need CSRF because our token is invulnerable
                 .csrf().disable()
+                .exceptionHandling().authenticationEntryPoint(errorAuthenticationEntryPoint).accessDeniedHandler(myAccessDeniedHandler)
+                .and()
                 //.exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
                 // don't create session
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()

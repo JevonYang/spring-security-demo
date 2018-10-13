@@ -21,7 +21,7 @@ public class SkipUrlMatcher implements RequestMatcher {
 
     @Override
     public boolean matches(HttpServletRequest request) {
-        for (String item:skipPattern) {
+        for (String item : skipPattern) {
             if (Pattern.matches(item, request.getRequestURI())) {
                 return false;
             }
