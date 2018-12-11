@@ -42,5 +42,18 @@ String username = principal.toString();
 通常对于UserDetailsService会产生误解，它是一个用于获取用户数据的纯DAO层，并且框架中唯一提供数据给其他组件的功能。特别的，userDetailsService并不认证用户，认证用户的过程是通过AuthenticationManager完成。在许多情况下，如果需要一个自定义的认证过程，直接实现AuthenticationProvider变得更有意义。
 
 GrantedAuthority
-除了principal之外，Authentication提供了另外一个重要的方法就是getAuthorities()。这个方法提供了一个数组的GrantedAuthority对象。顾名思义，GrantedAuthority就是一个赋予principal的权限。这样的权限通常是“角色（roles）”，比如说，ROLE_ADMINISTRATOR or ROLE_HR_SUPERVISOR。这些角色是之后再为web权限、方法权限、领域对象权限等配置。
+除了principal之外，Authentication提供了另外一个重要的方法就是getAuthorities()。这个方法提供了一个数组的GrantedAuthority对象。顾名思义，GrantedAuthority就是一个赋予principal的权限。这样的权限通常是“角色（roles）”，比如说，ROLE_ADMINISTRATOR 或者 ROLE_HR_SUPERVISOR。这些角色是之后再为web权限、方法权限、领域对象权限等配置。Spring Security其余部分能理解这些权限，并且接收这些权限。GrantedAuthority对象通常在UserDetailsService中加载。
+通常GrantedAuthority对象是整个应用范围的权限，并不只针对于已知的领域对象（domain object）。但是，你可能不希望用GrantedAuthority来表示编号54员工的权限，因为如果有上千个权限，可能很快导致内存用尽，至少会导致应用花费长时间认证用户。当然，Spring Security明确的表达了是为通用需求设计，但是你也可以使用项目的领域对象认证能力达到该目的。
 
+
+总结
+复习一下到目前为止我们看到的Spring Security主要内容：
+
+SecurityContextHolder：提供了获取SecurityContext方法。
+SecurityContext： 保持Authentication，并且能够获得请求所特有认证信息。
+Authentication：在Spring Security语境中，表示principal。
+GrantedAuthority：反映系统范围内授权给principal的权限（permissions）。
+UserDetails： 从应用中的DAO层获取认证数据，为构建Authentication对象提供必要信息
+UserDetailsService：当传入一个类型为字符串的username（或者id 或者其他类似的 用户名），创建一个UserDetails
+
+现在我们对于重复使用的组件有了进一步的认识，下一步我们更进一步来看认证过程。
