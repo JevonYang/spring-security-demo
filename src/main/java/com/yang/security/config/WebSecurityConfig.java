@@ -65,7 +65,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private AuthenticationManager authenticationManager;
 
   @Bean
-  public JwtAuthorizationTokenFilter getJwtAuthorizationTokenFilter() {
+  public JwtAuthorizationTokenFilter jwtAuthorizationTokenFilter() {
     SkipUrlMatcher matcher = new SkipUrlMatcher(Collections.singletonList("/user/.*"));
     JwtAuthorizationTokenFilter filter = new JwtAuthorizationTokenFilter(matcher);
     filter.setAuthenticationManager(authenticationManager);
@@ -133,8 +133,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .anyRequest().authenticated();
 
     // 将JwtAuthorizationTokenFilter加入过滤器链， 在这里放在UsernamePasswordAuthenticationFilter之前和之后都是可以的
-    http.addFilterAfter(getJwtAuthorizationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-
+    http.addFilterAfter(jwtAuthorizationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+    // UsernamePasswordAuthenticationFilter加入过滤链， FilterSecurityInterceptor和ExceptionTranslationFilter不用显式添加，只用通过@Bean覆盖即可
+    http.addFilterAt(usernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 
   /**
