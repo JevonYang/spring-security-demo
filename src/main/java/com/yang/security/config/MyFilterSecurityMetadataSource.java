@@ -20,12 +20,11 @@ public class MyFilterSecurityMetadataSource implements FilterInvocationSecurityM
 
     /**
      * 这个例子放在构造方法里初始化url权限数据，我们只要保证在 getAttributes()之前初始好数据就可以了
+     * 在这里，手工加载了几个对应的权限信息，也可以在这里从持久化层读取，如MySQL、MongoDB
      */
     public MyFilterSecurityMetadataSource() {
         Map<RequestMatcher, Collection<ConfigAttribute>> map = new HashMap<>();
-
         AntPathRequestMatcher matcher = new AntPathRequestMatcher("/hello","GET");
-
         SecurityConfig config = new SecurityConfig("ROLE_ADMIN");
         Set<ConfigAttribute> configs = new HashSet<>();
         configs.add(config);

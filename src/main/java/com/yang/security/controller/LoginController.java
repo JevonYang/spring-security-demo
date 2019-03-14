@@ -28,16 +28,16 @@ public class LoginController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public LoginSuccessInfo login(@RequestBody LoginEntity user) throws AuthenticationException {
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
-        final Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        final User currentUser = (User) authentication.getPrincipal();
-        long halfHourLater = System.currentTimeMillis() + 30 * 60 * 1000;
-        String accessToken = JwtUtil.generateAccessToken(currentUser);
-        return new LoginSuccessInfo(accessToken, accessToken, "JWT", halfHourLater);
-    };
+//    @RequestMapping(value = "/login", method = RequestMethod.POST)
+//    public LoginSuccessInfo login(@RequestBody LoginEntity user) throws AuthenticationException {
+//        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+//        final Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        final User currentUser = (User) authentication.getPrincipal();
+//        long halfHourLater = System.currentTimeMillis() + 30 * 60 * 1000;
+//        String accessToken = JwtUtil.generateAccessToken(currentUser);
+//        return new LoginSuccessInfo(accessToken, accessToken, "JWT", halfHourLater);
+//    };
 
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     public String logout() {

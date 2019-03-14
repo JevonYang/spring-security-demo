@@ -22,7 +22,7 @@ public class JwtUtil {
     long halfHourLater = System.currentTimeMillis() + 30 * 60 * 1000;
     return JWT.create()
         // 签发者
-        .withIssuer("jevon")
+        .withIssuer("Jevon")
         // 面向用户
         .withSubject(user.getCompany())
         // 接收方，一般为用户名

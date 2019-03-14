@@ -1,6 +1,5 @@
 package com.yang.security.config;
 
-import com.auth0.jwt.algorithms.Algorithm;
 import com.yang.security.handler.LoginAuthenticationFailureHandler;
 import com.yang.security.handler.LoginAuthenticationSuccessHandler;
 import com.yang.security.service.MyUserDetailsService;
@@ -29,13 +28,13 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -67,15 +66,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public JwtAuthorizationTokenFilter getJwtAuthorizationTokenFilter() {
-
-    RequestMatcher requestMatcher = new RequestMatcher() {
-      @Override
-      public boolean matches(HttpServletRequest request) {
-        return false;
-      }
-    };
-
-    JwtAuthorizationTokenFilter filter = new JwtAuthorizationTokenFilter(requestMatcher);
+    SkipUrlMatcher matcher = new SkipUrlMatcher(Collections.singletonList("/user/.*"));
+    JwtAuthorizationTokenFilter filter = new JwtAuthorizationTokenFilter(matcher);
     filter.setAuthenticationManager(authenticationManager);
     return filter;
   }
@@ -108,7 +100,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   /**
-   * @return UsernamePasswordAuthenticationFilter 重新加载自定义的该事例
+   * @return UsernamePasswordAuthenticationFilter 重新加载自定义的该实例，覆盖原有的bean
    */
   @Bean
   public UsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter() {
@@ -120,8 +112,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return usernamePasswordAuthenticationFilter;
   }
 
-
-  @Bean
   @Override
   protected UserDetailsService userDetailsService() {
     return new MyUserDetailsService();
@@ -141,9 +131,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/error").permitAll()
         .antMatchers("/test").hasRole("ADMIN")
         .anyRequest().authenticated();
-    http.addFilterBefore(getJwtAuthorizationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
+    // 将JwtAuthorizationTokenFilter加入过滤器链， 在这里放在UsernamePasswordAuthenticationFilter之前和之后都是可以的
+    http.addFilterAfter(getJwtAuthorizationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
   }
 
+  /**
+   * 重新加载FilterSecurityInterceptor，完成自己需要的一些实现，在这里我们是加入从url权限配置的功能
+   * 特别说一下：
+   * 有的朋友在写完这个实例之后，还在HttpSecurity中写入`httpSecurity.addFilterAt(getDynamicallyUrlInterceptor() ,FilterSecurityInterceptor.class);`类似的代码，
+   * 其实是没有必要的，当在这个类上加入@Bean的时候，实时上已经用自定义的FilterSecurityInterceptor取代了原始的bean，
+   * 并且addFilterAt/Before/After函数，并不会覆盖原有的bean。
+   *
+   * @return FilterSecurityInterceptor
+   */
   @Bean
   public FilterSecurityInterceptor getDynamicallyUrlInterceptor() {
     FilterSecurityInterceptor interceptor = new FilterSecurityInterceptor();
@@ -154,7 +156,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return interceptor;
   }
 
-  @Bean
   public PasswordEncoder getPasswordEncoder() {
     return new BCryptPasswordEncoder();
   }
@@ -171,6 +172,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   /**
+   * 这个过滤器位于过滤器的倒数第二层，从上面传过来的两类Exception（AuthenticationException和AccessDeniedException）都将在这里处理
+   *
    * @return ExceptionTranslationFilter
    */
   @Bean
