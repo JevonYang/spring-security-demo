@@ -9,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @date 2018/10/10
  * @description MVC controller配置
  */
+@Deprecated
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
 
