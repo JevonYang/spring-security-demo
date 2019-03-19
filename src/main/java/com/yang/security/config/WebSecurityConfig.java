@@ -1,5 +1,7 @@
 package com.yang.security.config;
 
+import com.yang.security.authentication.JwtAuthenticationProvider;
+import com.yang.security.authentication.JwtAuthorizationTokenFilter;
 import com.yang.security.handler.LoginAuthenticationFailureHandler;
 import com.yang.security.handler.LoginAuthenticationSuccessHandler;
 import com.yang.security.service.MyUserDetailsService;
@@ -107,7 +109,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     UsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter = new UsernamePasswordAuthenticationFilter();
     usernamePasswordAuthenticationFilter.setFilterProcessesUrl("/user/login");
     usernamePasswordAuthenticationFilter.setAuthenticationManager(authenticationManager);
+    // 登录成功后的操作
     usernamePasswordAuthenticationFilter.setAuthenticationFailureHandler(new LoginAuthenticationFailureHandler());
+    // 登录失败后的操作
     usernamePasswordAuthenticationFilter.setAuthenticationSuccessHandler(new LoginAuthenticationSuccessHandler());
     return usernamePasswordAuthenticationFilter;
   }

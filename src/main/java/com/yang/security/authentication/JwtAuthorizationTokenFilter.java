@@ -1,10 +1,9 @@
-package com.yang.security.config;
+package com.yang.security.authentication;
 
 import com.yang.security.model.User;
 import com.yang.security.utils.JwtUtil;
 import com.yang.security.utils.UserHintUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;

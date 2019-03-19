@@ -1,4 +1,4 @@
-package com.yang.security.config;
+package com.yang.security.authentication;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;

@@ -7,7 +7,7 @@ spring:
       stat-view-servlet:
         login-password: 123456
         login-username: user
-        enabled: false
+        enabled: true
       web-stat-filter:
         enabled: false
   redis:
@@ -16,6 +16,8 @@ spring:
     database: 3
     ssl: false
     timeout: 6000
+  application:
+    name: spring-security-demo
 mybatis:
   type-aliases-package: com.yang.security.model
   mapper-locations: mappers/*.xml
