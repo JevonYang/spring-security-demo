@@ -225,6 +225,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
   }
 }
 ```
+
 总结一下我们干了什么：
 1. 实现一个自定义`AuthorizationTokenFilter`，实现`doFilter`方法，该方法则是认证的整个过程。
 2. 获取请求信息（这一节获取的信息是JWT，上一节获取的是用户名密码），将这些信息生成一个`AuthenticationToken`（这一节生成的JwtAuthenticationToken，上一节是UsernamePasswordToken）
@@ -233,6 +234,173 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
 ## 授权
 
+### 流程简述
+当我们成功登录，获取`access_token`，即可使用该token来访问有权限的接口。如上文所讲，`JwtAuthenticationFilter`将`access_token`转化为系统可识别的`Authentication`放入安全上下文，
+则来到最后一个过滤器`FilterSecurityInterceptor`,该过滤则是判断请求是否拥有权限。
+
+```java
+public class FilterSecurityInterceptor extends AbstractSecurityInterceptor implements Filter {
+  
+  public void doFilter(ServletRequest request, ServletResponse response, 
+    FilterChain chain) throws IOException, ServletException {
+	  FilterInvocation fi = new FilterInvocation(request, response, chain);
+	  invoke(fi);
+	}
+	
+  public void invoke(FilterInvocation fi) throws IOException, ServletException {
+    if ((fi.getRequest() != null)
+	  && (fi.getRequest().getAttribute(FILTER_APPLIED) != null)
+	  && observeOncePerRequest) {
+	    // filter already applied to this request and user wants us to observe
+		// once-per-request handling, so don't re-do security checking
+	  fi.getChain().doFilter(fi.getRequest(), fi.getResponse());
+	} else {
+	  // first time this request being called, so perform security checking
+	  if (fi.getRequest() != null && observeOncePerRequest) {
+	      fi.getRequest().setAttribute(FILTER_APPLIED, Boolean.TRUE);
+	  }
+	  // 请求之前的工作，也就是真正的权限认证的过程
+	  InterceptorStatusToken token = super.beforeInvocation(fi);
+	  try {
+	    // 请求真正的controller
+	    fi.getChain().doFilter(fi.getRequest(), fi.getResponse());
+	  }
+	  finally {
+	    super.finallyInvocation(token);
+	  }
+	  // 请求后的工作
+	  super.afterInvocation(token, null);
+	}
+  }
+}
+```
+FilterSecurityInterceptor的主体方法依旧在doFilter中，而其中主要的方法为invoke()，大约分为三个步骤：
+1. beforeInvocation(fi);  验证Context中的Authentication和目标url所需权限是否匹配，匹配则通过，不通过则抛出异常。
+2. fi.getChain().doFilter(fi.getRequest(), fi.getResponse());  在此可以看做是，真正去访问目标Controller。
+3. afterInvocation(token, null); 获取请求后的操作。
+
+首先来看看beforeInvocation()
+
+### beforeInvocation
+
+```java
+abstract class AbstractSecurityInterceptor {
+  protected InterceptorStatusToken beforeInvocation(Object object) {
+     // 获取目标url的权限内容，这些内容可以从configuration中获取也可以用MetadataSource中获取
+     Collection<ConfigAttribute> attributes = this.obtainSecurityMetadataSource().getAttributes(object);
+     // ……省略
+    
+  	 Authentication authenticated = authenticateIfRequired();
+  
+  	 // Attempt authorization
+  	 try {
+  	    // AccessDecisionManager用于验证Authentication中的权限和目标url所需权限是否匹配，如果不匹配则抛出AccessDeniedException异常
+  	    this.accessDecisionManager.decide(authenticated, object, attributes);
+  	 }
+  	 catch (AccessDeniedException accessDeniedException) {
+  		publishEvent(new AuthorizationFailureEvent(object, attributes, authenticated,
+  			accessDeniedException));
+    			throw accessDeniedException;
+  	 }
+  
+  	 // Attempt to run as a different user
+  	 Authentication runAs = this.runAsManager.buildRunAs(authenticated, object, attributes);
+  	 
+  	 // 下一步则是生成InterceptorStatusToken，用于AfterInvocation步骤。有兴趣可以自己看
+  	 if (runAs == null) {
+  	   // no further work post-invocation
+  		return new InterceptorStatusToken(SecurityContextHolder.getContext(), false, attributes, object);
+  	 }
+  	 else {
+  		SecurityContext origCtx = SecurityContextHolder.getContext();
+  		SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext());
+  		SecurityContextHolder.getContext().setAuthentication(runAs);
+  		// need to revert to token.Authenticated post-invocation
+  		return new InterceptorStatusToken(origCtx, true, attributes, object);
+  	 }
+  }
+}
+```
+1. `Collection<ConfigAttribute> attributes = this.obtainSecurityMetadataSource().getAttributes(object);`获取目标url所需要的权限，
+该类实现`FilterInvocationSecurityMetadataSource`接口的方法。而配置url权限也可以从`WebSecurityConfig`中的configuration方法配置。
+2. `this.accessDecisionManager.decide(authenticated, object, attributes);` 
+判断`Authentication`中的权限目标url所需权限是否匹配，匹配则通过；不匹配则抛出`AccessDeniedException`异常。
+该方法来自`AbstractAccessDecisionManager`的实现类，系统默认实现为`AffirmativeBased`。
+3. `new InterceptorStatusToken(SecurityContextHolder.getContext(), false, attributes, object);` 
+实现`InterceptorStatusToken`并返回，包括参数中的信息，如安全上下文、目标url所需权限、原始的访问请求。
+
+之后则访问目标Controller，获取真正的请求内容。
+
+### afterInvocation
+
+
+当我们启用了`@PreAuthorize()`、`@PostAuthorize()`注解的时候则会`AfterInvocationManger`,进而有以下验证逻辑。
+```java
+abstract class AbstractSecurityInterceptor {
+  protected Object afterInvocation(InterceptorStatusToken token, Object returnedObject) {
+    if (token == null) {
+  	  // public object
+  	  return returnedObject;
+  	}
+  
+  	finallyInvocation(token); // continue to clean in this method for passivity
+  
+  	if (afterInvocationManager != null) {
+  	// Attempt after invocation handling
+  	  try {
+  		returnedObject = afterInvocationManager.decide(token.getSecurityContext()
+  		  .getAuthentication(), token.getSecureObject(), token
+  		  .getAttributes(), returnedObject);
+  	  }
+  	  catch (AccessDeniedException accessDeniedException) {
+  		AuthorizationFailureEvent event = new AuthorizationFailureEvent(
+  		  token.getSecureObject(), token.getAttributes(), token
+  			.getSecurityContext().getAuthentication(),
+  		    	accessDeniedException);
+  		publishEvent(event);
+  		throw accessDeniedException;
+  	  }
+  	}
+  	return returnedObject;
+  }
+}
+```
+
+
+以下代码则是包含`AfterInvocationManager`具体的实现。
+```java
+public class GlobalMethodSecurityConfiguration {
+  protected AfterInvocationManager afterInvocationManager() {
+    if (prePostEnabled()) {
+  	  AfterInvocationProviderManager invocationProviderManager = new AfterInvocationProviderManager();
+  		ExpressionBasedPostInvocationAdvice postAdvice = new ExpressionBasedPostInvocationAdvice(
+  	    	getExpressionHandler());
+  		PostInvocationAdviceProvider postInvocationAdviceProvider = new PostInvocationAdviceProvider(
+  			postAdvice);
+  		List<AfterInvocationProvider> afterInvocationProviders = new ArrayList<>();
+  		afterInvocationProviders.add(postInvocationAdviceProvider);
+  		invocationProviderManager.setProviders(afterInvocationProviders);
+  		return invocationProviderManager;
+  	  }
+  	return null;
+  }
+}
+```
+
+### 我们可以做些什么？
+
+1. 实现`FilterInvocationSecurityMetadataSource`，用于启动时加载url所需的权限，这样就不用在configuration或者注解中将目标url权限‘写死’。
+可以参照本例所写的实现`MyFilterInvocationSecurityMetadataSource`。
+
+2. 重载`AbstractAccessDecisionManager`，根据业务需要重写，请求目标权限和Authentication中权限的验证过程.
+举个例子，Spring Security中默认的RBAC，即，权限认证都是根据角色判断，固定角色只能访问固定接口。
+现在我们需要ACL权限模型，用户A权限为1，用户B权限为5，用户C权限为9，接口a需要权限6，则用户C可以访问，
+而用户A、B不能访问，就是说权限大的可以访问权限小的接口，如果需要改变权限模型则重载该类即可。
+
+### 总结
+授权过程主要有哪些？
+1. 获取请求目标所需权限，从`FilterInvocationSecurityMetadataSource`接口的实现类获取。
+2. 对比安全上下文中`Authentication`中的权限是否匹配，在`AbstractAccessDecisionManager`的实现类中比较。
 
 ## 链接
 [spring-security-demo](https://github.com/JevonYang/spring-security-demo "spring-security-demo")
