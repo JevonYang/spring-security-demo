@@ -1,8 +1,10 @@
 package com.yang.security.dao;
 
 import com.yang.security.model.User;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
+
 
 /**
  * @author jevon

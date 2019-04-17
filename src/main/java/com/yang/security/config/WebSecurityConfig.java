@@ -66,6 +66,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   private AuthenticationManager authenticationManager;
 
+  @Autowired
+  private MyUserDetailsService userDetailsService;
+
   @Bean
   public JwtAuthorizationTokenFilter jwtAuthorizationTokenFilter() {
     SkipUrlMatcher matcher = new SkipUrlMatcher(Collections.singletonList("/user/.*"));
@@ -116,10 +119,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return usernamePasswordAuthenticationFilter;
   }
 
-  @Override
-  protected UserDetailsService userDetailsService() {
-    return new MyUserDetailsService();
-  }
+//  @Override
+//  protected UserDetailsService userDetailsService() {
+//    return new MyUserDetailsService();
+//  }
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -169,7 +172,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
     // 配置了DaoAuthenticationProvider中的userDetailsService和PasswordEncoder
     auth
-        .userDetailsService(userDetailsService())
+        .userDetailsService(userDetailsService)
         .passwordEncoder(getPasswordEncoder());
 
     // 加入JwtAuthenticationProvider，用于处理JwtAuthentication
